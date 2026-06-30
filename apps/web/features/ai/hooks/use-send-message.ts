@@ -1,0 +1,62 @@
+'use client';
+
+import { toast } from 'sonner';
+
+import { trpc } from '~/trpc/client';
+
+type UseSendMessageProps = {
+  featureId: string;
+};
+
+export function useSendMessage({
+  featureId,
+}: UseSendMessageProps) {
+  const utils = trpc.useUtils();
+
+  const mutation =
+    trpc.aiThread.sendUserMessage.useMutation({
+      async onSuccess(message) {
+        utils.aiThread.listMessages.setData(
+          {
+            threadId: message.threadId,
+          },
+          (previous) => {
+            if (!previous) {
+              return [message];
+            }
+
+            const exists = previous.some(
+              (item) => item.id === message.id
+            );
+
+            if (exists) {
+              return previous;
+            }
+
+            return [...previous, message];
+          }
+        );
+
+        // Refresh Feature Context
+        await utils.featureContext.get.invalidate({
+          featureId,
+        });
+      },
+
+      onError(error) {
+        toast.error(error.message);
+      },
+    });
+
+  return {
+    sendMessage: mutation.mutate,
+
+    sendMessageAsync: mutation.mutateAsync,
+
+    isSending: mutation.isPending,
+
+    error: mutation.error,
+
+    reset: mutation.reset,
+  };
+}
