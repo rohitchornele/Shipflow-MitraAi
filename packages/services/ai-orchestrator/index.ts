@@ -1,20 +1,21 @@
-import { generateText } from 'ai';
+import { generateObject } from 'ai';
+import { z } from 'zod';
 
 import { openrouter } from '../ai/client';
 import { REQUIREMENT_MODEL } from '../ai/models';
 
 import { REQUIREMENT_SYSTEM_PROMPT } from './prompt';
+import { RequirementContextSchema } from '../ai/requirement/model';
 
-export type RequirementContext = {
-  assistantMessage: string;
-  summary: string;
-  completion: number;
-  missingItems: string[];
-  requirements: Record<string, unknown>;
-};
+
+
+export type RequirementContext = z.infer<
+  typeof RequirementContextSchema
+>;
 
 export type ConversationMessage = {
   role: 'user' | 'assistant' | 'system';
+
   content: string;
 };
 
@@ -36,13 +37,19 @@ function buildConversation(
 export async function processRequirementConversation(
   input: ProcessRequirementConversationInput
 ): Promise<RequirementContext> {
-  const prompt = buildConversation(input.messages);
+  const prompt = buildConversation(
+    input.messages
+  );
 
-  const { text } = await generateText({
+  const { object } = await generateObject({
     model: openrouter(REQUIREMENT_MODEL),
+
     system: REQUIREMENT_SYSTEM_PROMPT,
+
     prompt,
+
+    schema: RequirementContextSchema,
   });
 
-  return JSON.parse(text);
+  return object;
 }

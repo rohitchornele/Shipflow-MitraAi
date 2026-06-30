@@ -20,6 +20,10 @@ export async function postPullRequestComment({
 
   const [owner, repo] = repoFullName.split('/');
 
+  if (!owner || !repo) {
+    throw new Error('Repository owner or name is missing.');
+  }
+
   await octokit.request(
     'POST /repos/{owner}/{repo}/issues/{issue_number}/comments',
     {

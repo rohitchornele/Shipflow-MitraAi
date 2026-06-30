@@ -4,6 +4,19 @@ import { db } from '@repo/database';
 import { featureContext } from '@repo/database/schema';
 
 import type { CreateFeatureContextInput, RequirementContext } from './model';
+import { RequirementContextSchema } from '../ai/requirement/model';
+
+function mapFeatureContext(context: any) {
+  return {
+    ...context,
+
+    requirements: RequirementContextSchema.parse(
+      context.requirements ?? {}
+    ),
+
+    missingItems: context.missingItems ?? [],
+  };
+}
 
 class FeatureContextService {
   /* -------------------------------------------------------------------------- */
@@ -32,7 +45,7 @@ class FeatureContextService {
       throw new Error('Failed to create feature context');
     }
 
-    return context;
+    return mapFeatureContext(context);
   }
 
   /* -------------------------------------------------------------------------- */
@@ -76,7 +89,7 @@ class FeatureContextService {
       throw new Error('Failed to update feature context');
     }
 
-    return updated;
+    return mapFeatureContext(updated);
   }
 
   /* -------------------------------------------------------------------------- */
@@ -102,7 +115,7 @@ class FeatureContextService {
       throw new Error('Failed to reset feature context');
     }
 
-    return updated;
+    return mapFeatureContext(updated);
   }
 
   /* -------------------------------------------------------------------------- */

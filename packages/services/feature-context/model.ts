@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { RequirementContextSchema } from '../ai/requirement/model';
+
 /* -------------------------------------------------------------------------- */
 /*                               Context Schema                               */
 /* -------------------------------------------------------------------------- */
@@ -11,7 +13,7 @@ export const featureContextSchema = z.object({
 
   summary: z.string().nullable(),
 
-  requirements: z.record(z.string(), z.any()).nullable(),
+  requirements: RequirementContextSchema.shape.requirements,
 
   missingItems: z.array(z.string()).nullable(),
 

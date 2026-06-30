@@ -12,6 +12,10 @@ export const aiThreadTypeSchema = z.enum([
   'general',
 ]);
 
+
+
+export type AIMessage = z.infer<typeof aiMessageSchema>;
+
 export const aiThreadStatusSchema = z.enum(['active', 'completed', 'archived']);
 
 export const aiMessageRoleSchema = z.enum([
@@ -20,6 +24,22 @@ export const aiMessageRoleSchema = z.enum([
   'assistant',
   'tool',
 ]);
+
+export const aiMessageSchema = z.object({
+  id: z.string().uuid(),
+
+  threadId: z.string().uuid(),
+
+  role: aiMessageRoleSchema,
+
+  content: z.string(),
+
+  sequence: z.number(),
+
+  metadata: z.unknown().nullable(),
+
+  createdAt: z.date(),
+});
 
 export type AIMessageRole = z.infer<typeof aiMessageRoleSchema>;
 
@@ -84,17 +104,8 @@ export const sendMessageInput = z.object({
 });
 
 export const sendMessageOutput = z.object({
-  id: z.string().uuid(),
-
-  threadId: z.string().uuid(),
-
-  role: aiMessageRoleSchema,
-
-  content: z.string(),
-
-  metadata: z.any().nullable(),
-
-  createdAt: z.date(),
+  assistantMessage: aiMessageSchema,
+  featureId: z.string().uuid(),
 });
 
 /* -------------------------------------------------------------------------- */
@@ -105,7 +116,7 @@ export const listMessagesInput = z.object({
   threadId: z.string().uuid(),
 });
 
-export const listMessagesOutput = z.array(sendMessageOutput);
+export const listMessagesOutput = z.array(aiMessageSchema);
 
 /* -------------------------------------------------------------------------- */
 /*                              Delete Thread                                 */

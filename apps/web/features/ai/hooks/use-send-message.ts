@@ -8,45 +8,40 @@ type UseSendMessageProps = {
   featureId: string;
 };
 
-export function useSendMessage({
-  featureId,
-}: UseSendMessageProps) {
+export function useSendMessage({ featureId }: UseSendMessageProps) {
   const utils = trpc.useUtils();
 
-  const mutation =
-    trpc.aiThread.sendUserMessage.useMutation({
-      async onSuccess(message) {
-        utils.aiThread.listMessages.setData(
-          {
-            threadId: message.threadId,
-          },
-          (previous) => {
-            if (!previous) {
-              return [message];
-            }
+  const mutation = trpc.aiThread.sendUserMessage.useMutation({
+    onSuccess(result) {
+      const message = result.assistantMessage;
 
-            const exists = previous.some(
-              (item) => item.id === message.id
-            );
-
-            if (exists) {
-              return previous;
-            }
-
-            return [...previous, message];
+      utils.aiThread.listMessages.setData(
+        {
+          threadId: message.threadId,
+        },
+        (previous) => {
+          if (!previous) {
+            return [message];
           }
-        );
 
-        // Refresh Feature Context
-        await utils.featureContext.get.invalidate({
-          featureId,
-        });
-      },
+          const exists = previous.some((item) => item.id === message.id);
 
-      onError(error) {
-        toast.error(error.message);
-      },
-    });
+          if (exists) {
+            return previous;
+          }
+
+          return [...previous, message];
+        }
+      );
+
+      utils.featureContext.get.invalidate({
+        featureId: result.featureId,
+      });
+    },
+    onError(error) {
+      toast.error(error.message);
+    },
+  });
 
   return {
     sendMessage: mutation.mutate,

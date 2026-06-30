@@ -19,6 +19,10 @@ export async function getPullRequestFiles(
 
   const [owner, repo] = repoFullName.split('/');
 
+  if (!owner || !repo) {
+    throw new Error('Repository owner or name is missing.');
+  }
+
   const { data } = await octokit.request(
     'GET /repos/{owner}/{repo}/pulls/{pull_number}/files',
     {
